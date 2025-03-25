@@ -61,23 +61,27 @@ public class Main {
 
         //mapa do alfabeto
         char[] alfabeto = new char[24];
+
         int index = 0;
 
-        for (char c = '0'; c <= '9'; c++) {
-            alfabeto[index++] = c; // 0-9 (10 caracteres)
+        for(char c = '0'; c <= '9'; c++){
+            alfabeto[index++] = c;
         }
+
         for (char c = 'A'; c <= 'F'; c++) {
-            alfabeto[index++] = c; // A-F (6 caracteres)
+            alfabeto[index++] = c;
         }
+
         for (char c = 'a'; c <= 'f'; c++) {
-            alfabeto[index++] = c; // a-f (6 caracteres)
+            alfabeto[index++] = c;
         }
-        alfabeto[index++] = ':'; // Delimitador 1
-        alfabeto[index++] = '-'; // Delimitador 2
+
+        alfabeto[index++] = ':';
+        alfabeto[index] = '-';
 
         //mapa de estados
-        String[] estados = new String[18];
-        for (int i = 0; i < 18; i++) {
+        String[] estados = new String[31];
+        for (int i = 0; i < 31; i++) {
             estados[i] = "q" + i;
         }
 
@@ -85,42 +89,50 @@ public class Main {
 
         //estados finais
         String[] estados_finais = new String[1];
-        estados_finais[0] = "q17";
+        estados_finais[0] = "q30";
 
-        //tabela de transição de AFD para reconhecimento números de dois dígitos
-        int[][] matriz = new int[18][24];
-        for (int i = 0; i < 18; i++) {
-            for (int j = 0; j < 24; j++) {
-                matriz[i][j] = -1;  //Inicializa com -1 (sem transição)
+        //tabela de transição de AFD para reconhecimento MAC
+        int[][] matriz = new int[31][24]; //[estados][alfabeto]
+
+        for(int i = 0; i < 31; i++){
+            boolean ehCasoEspecial = (i == 16 || i == 30 || i == 19 || i == 22 || i == 25 || i == 28);
+            boolean ehDivisivelPor3 = (i + 1) % 3 == 0 && i != 17 && i < 15;
+
+            for (int y = 0; y < alfabeto.length - 2; y++) {
+                if (ehCasoEspecial) {
+                    matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, alfabeto[y])] = -1;
+
+                    if (y == alfabeto.length -3) {
+                        if (i == 16 || i == 30) {
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = -1;
+                        } else {
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = get_string_ref(estados, "q" + (i + 1));
+                        }
+                    }
+                } else if (ehDivisivelPor3) {
+                    matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, alfabeto[y])] = -1;
+
+                    if (y == alfabeto.length -3) {
+                        if (i == 2) {
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = get_string_ref(estados, "q" + (i + 1));
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = get_string_ref(estados, "q" + (i + 15));
+                        } else {
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = get_string_ref(estados, "q" + (i + 1));
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = -1;
+                        }
+                    }
+                } else {
+                    matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, alfabeto[y])] = get_string_ref(estados, "q" + (i + 1));
+
+                    if (y == alfabeto.length -3) {
+                        matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
+                        matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = -1;
+                    }
+                }
             }
-        };
-
-        //Prenche a tabela de tranficao
-        for (int i = 0; i < 16; i++) {
-            matriz[0][i] = 1; // q0 -> q1
-            matriz[1][i] = 2; // q1 -> q2
-            matriz[3][i] = 4; // q3 -> q4
-            matriz[4][i] = 5; // q4 -> q5
-            matriz[6][i] = 7; // q6 -> q7
-            matriz[7][i] = 8; // q7 -> q8
-            matriz[9][i] = 10; // q9 -> q10
-            matriz[10][i] = 11; // q10 -> q11
-            matriz[12][i] = 13; // q12 -> q13
-            matriz[13][i] = 14; // q13 -> q14
-            matriz[15][i] = 16; // q15 -> q16
-            matriz[16][i] = 17; // q16 -> q17
         }
-
-        matriz[2][22] = 3; // q2 -> q3 (delimitador :)
-        matriz[2][23] = 3; // q2 -> q3 (delimitador -)
-        matriz[5][22] = 6; // q5 -> q6 (delimitador :)
-        matriz[5][23] = 6; // q5 -> q6 (delimitador -)
-        matriz[8][22] = 9; // q8 -> q9 (delimitador :)
-        matriz[8][23] = 9; // q8 -> q9 (delimitador -)
-        matriz[11][22] = 12; // q11 -> q12 (delimitador :)
-        matriz[11][23] = 12; // q11 -> q12 (delimitador -)
-        matriz[14][22] = 15; // q14 -> q15 (delimitador :)
-        matriz[14][23] = 15; // q14 -> q15 (delimitador -)
 
         int estado = get_string_ref(estados, estado_inicial);
         int estado_anterior = -1;
