@@ -88,8 +88,9 @@ public class Main {
         String estado_inicial = "q0";
 
         //estados finais
-        String[] estados_finais = new String[1];
-        estados_finais[0] = "q30";
+        String[] estados_finais = new String[2];
+        estados_finais[0] = "q16";
+        estados_finais[1] = "q30";
 
         //tabela de transição de AFD para reconhecimento MAC
         int[][] matriz = new int[31][24]; //[estados][alfabeto]
