@@ -49,12 +49,14 @@ public class Main {
     public static void main(String[] args) {
         //instancia e usa objeto que captura código-fonte de páginas Web
         CapturaRecursosWeb crw = new CapturaRecursosWeb();
-        //crw.getListaRecursos().add("https://www.techtudo.com.br/noticias/2014/11/o-que-e-endereco-mac-saiba-como-encontrar.ghtml");// ENDERECO 1 
+        //crw.getListaRecursos().add("https://www.techtudo.com.br/noticias/2014/11/o-que-e-endereco-mac-saiba-como-encontrar.ghtml");// ENDERECO 1
         //crw.getListaRecursos().add("https://www.cisco.com/c/pt_br/support/docs/ip/routing-information-protocol-rip/13788-3.html ");//ENDERECO 2 NAO CONTRA
-       //crw.getListaRecursos().add("https://pt.wikipedia.org/wiki/Endere%C3%A7o_MAC");//ENDERECO 3
-       //crw.getListaRecursos().add("https://www.controle.net/faq/o-que-e-mac-address");//ENDERECO 4 nAO ENCONTRA
-       //crw.getListaRecursos().add("https://help.gnome.org/users/gnome-help/stable/net-macaddress.html.pt#:~:text=Um%20endere%C3%A7o%20MAC%20consiste%20em,um%20exemplo%20de%20endere%C3%A7o%20MAC.");
-        
+        crw.getListaRecursos().add("https://pt.wikipedia.org/wiki/Endere%C3%A7o_MAC");//ENDERECO 3
+        //crw.getListaRecursos().add("https://www.controle.net/faq/o-que-e-mac-address");//ENDERECO 4 nAO ENCONTRA
+        //crw.getListaRecursos().add("https://help.gnome.org/users/gnome-help/stable/net-macaddress.html.pt#:~:text=Um%20endere%C3%A7o%20MAC%20consiste%20em,um%20exemplo%20de%20endere%C3%A7o%20MAC.");
+        //crw.getListaRecursos().add("http://localhost:3000/");// ENDERECO 1
+
+
         ArrayList<String> listaCodigos = crw.carregarRecursos();
 
         String codigoHTML = listaCodigos.get(0);
@@ -80,36 +82,32 @@ public class Main {
         alfabeto[index] = '-';
 
         //mapa de estados
-        String[] estados = new String[31];
-        for (int i = 0; i < 31; i++) {
+        String[] estados = new String[33];
+        for (int i = 0; i < 33; i++) {
             estados[i] = "q" + i;
         }
 
         String estado_inicial = "q0";
 
         //estados finais
-        String[] estados_finais = new String[1];
-        estados_finais[0] = "q30";
+        String[] estados_finais = new String[2];
+        estados_finais[0] = "q17";
+        estados_finais[1] = "q32";
 
         //tabela de transição de AFD para reconhecimento MAC
-        int[][] matriz = new int[31][24]; //[estados][alfabeto]
+        int[][] matriz = new int[33][24]; //[estados][alfabeto]
 
-        for(int i = 0; i < 31; i++){
-            boolean ehCasoEspecial = (i == 16 || i == 30 || i == 19 || i == 22 || i == 25 || i == 28);
-            boolean ehDivisivelPor3 = (i + 1) % 3 == 0 && i != 17 && i < 15;
+        for(int i = 0; i < 33; i++){
+            boolean ehEstadoFinal = (i == 17 || i == 32);
+            boolean ehDivisivelPor3 = (i + 1) % 3 == 0;
 
             for (int y = 0; y < alfabeto.length - 2; y++) {
-                if (ehCasoEspecial) {
+                if (ehEstadoFinal) {
                     matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, alfabeto[y])] = -1;
 
                     if (y == alfabeto.length -3) {
-                        if (i == 16 || i == 30) {
-                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
-                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = -1;
-                        } else {
-                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
-                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = get_string_ref(estados, "q" + (i + 1));
-                        }
+                        matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
+                        matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = -1;
                     }
                 } else if (ehDivisivelPor3) {
                     matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, alfabeto[y])] = -1;
@@ -117,7 +115,10 @@ public class Main {
                     if (y == alfabeto.length -3) {
                         if (i == 2) {
                             matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = get_string_ref(estados, "q" + (i + 1));
-                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = get_string_ref(estados, "q" + (i + 15));
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = get_string_ref(estados, "q" + (i + 16));
+                        } else if( i > 18 ){
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = -1;
+                            matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = get_string_ref(estados, "q" + (i + 1));
                         } else {
                             matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, ':')] = get_string_ref(estados, "q" + (i + 1));
                             matriz[get_string_ref(estados, "q" + i)][get_char_ref(alfabeto, '-')] = -1;
